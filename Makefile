@@ -1,10 +1,5 @@
 # Define the default target now so that it is always the first target
-BUILD_TARGETS = main quantize quantize-stats perplexity embedding vdot train-text-from-scratch convert-llama2c-to-ggml simple server embd-input-test llama-bench
-
-# Binaries only useful for tests
-TEST_TARGETS = tests/test-llama-grammar tests/test-grammar-parser tests/test-double-float tests/test-grad0 tests/test-opt tests/test-quantize-fns tests/test-quantize-perf tests/test-sampling tests/test-tokenizer-0
-
-default: $(BUILD_TARGETS)
+default: main quantize quantize-stats perplexity embedding vdot
 
 ifndef UNAME_S
 UNAME_S := $(shell uname -s)
@@ -346,6 +341,7 @@ libllama.so: llama.o ggml.o $(OBJS)
 
 clean:
 	rm -vf *.o *.so *.dll main quantize quantize-stats perplexity embedding benchmark-matmult save-load-state server simple vdot train-text-from-scratch convert-llama2c-to-ggml embd-input-test llama-bench build-info.h $(TEST_TARGETS)
+	rm -rf *.jar llama_wrap_java.h llama_wrap_java.cpp libllama_wrap.so bin uk
 
 #
 # Examples
@@ -441,3 +437,29 @@ tests/test-sampling: tests/test-sampling.cpp build-info.h ggml.o llama.o common.
 
 tests/test-tokenizer-0: tests/test-tokenizer-0.cpp build-info.h ggml.o llama.o common.o $(OBJS)
 	$(CXX) $(CXXFLAGS) $(filter-out %.txt,$^) -o $@ $(LDFLAGS)
+
+# Wraps
+
+JAVAWRAPDIR = uk/co/bnikolic
+JAVAC = javac
+
+JDK_INCLUDE ?= -I/usr/lib/jvm/java-17-openjdk-amd64/include
+JDK_SYSTEM_INCLUDE ?= -I/usr/lib/jvm/java-17-openjdk-amd64/include/linux
+
+
+LLamaWrap.jar: llama_wrap_java.cpp libllama_wrap.so
+	mkdir -p bin
+	find $(JAVAWRAPDIR)  -name '*.java' | xargs $(JAVAC) -g -d bin
+	jar cf $@ -C bin uk
+
+llama_wrap_java.cpp: llama_wrap.i
+	mkdir -p $(JAVAWRAPDIR)
+	swig -java -c++ -outdir $(JAVAWRAPDIR)  \
+            -package uk.co.bnikolic -o $@  $<
+
+llama_wrap_java.o: llama_wrap_java.cpp
+	$(CXX) $(CXXFLAGS) $(JDK_INCLUDE) $(JDK_SYSTEM_INCLUDE) -c  $< -o $@
+
+libllama_wrap.so: llama_wrap_java.o libllama.so
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared  $< -L. -lllama  -o $@
+
