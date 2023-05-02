@@ -10,6 +10,14 @@
 %feature("autodoc");
 #endif
 
+%pragma(java) jniclasscode=%{
+  /// Load the JNI library
+  static {
+    System.loadLibrary("llama_wrap");
+  }
+%}
+
+
 %{
 #include "llama.h"
 %}
