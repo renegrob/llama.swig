@@ -1,13 +1,16 @@
-#include "llama.h"
 #include "ggml.h"
-#include <cassert>
+#include "llama.h"
+
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cmath>
 #include <numeric>
 #include <cassert>
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
 
 void dump(const llama_token_data_array * candidates) {
     for (size_t i = 0; i < candidates->size; i++) {
@@ -32,7 +35,7 @@ void test_top_k(const std::vector<float> & probs,
     llama_token_data_array candidates_p = { candidates.data(), candidates.size(), false };
     llama_sample_softmax(nullptr, &candidates_p);
     DUMP(&candidates_p);
-    llama_sample_top_k(nullptr, &candidates_p, k);
+    llama_sample_top_k(nullptr, &candidates_p, k, 1);
     DUMP(&candidates_p);
 
     assert(candidates_p.size == expected_probs.size());
@@ -57,7 +60,7 @@ void test_top_p(const std::vector<float> & probs,
     llama_token_data_array candidates_p = { candidates.data(), candidates.size(), false };
     llama_sample_softmax(nullptr, &candidates_p);
     DUMP(&candidates_p);
-    llama_sample_top_p(nullptr, &candidates_p, p);
+    llama_sample_top_p(nullptr, &candidates_p, p, 1);
     DUMP(&candidates_p);
 
     assert(candidates_p.size == expected_probs.size());
@@ -80,7 +83,7 @@ void test_tfs(const std::vector<float> & probs,
 
     llama_token_data_array candidates_p = { candidates.data(), candidates.size(), false };
     DUMP(&candidates_p);
-    llama_sample_tail_free(nullptr, &candidates_p, z);
+    llama_sample_tail_free(nullptr, &candidates_p, z, 1);
     DUMP(&candidates_p);
 
     assert(candidates_p.size == expected_probs.size());
@@ -103,7 +106,7 @@ void test_typical(const std::vector<float> & probs,
 
     llama_token_data_array candidates_p = { candidates.data(), candidates.size(), false };
     DUMP(&candidates_p);
-    llama_sample_typical(nullptr, &candidates_p, p);
+    llama_sample_typical(nullptr, &candidates_p, p, 1);
     DUMP(&candidates_p);
 
     assert(candidates_p.size == expected_probs.size());
@@ -173,27 +176,27 @@ void test_frequency_presence_penalty(
 int main(void) {
     ggml_time_init();
 
-    test_top_k({0.1, 0.2, 0.3, 0.4}, {0.4}, 1);
-    test_top_k({0.1, 0.2, 0.3, 0.4}, {0.4, 0.3, 0.2}, 3);
+    test_top_k({0.1f, 0.2f, 0.3f, 0.4f}, {0.4f}, 1);
+    test_top_k({0.1f, 0.2f, 0.3f, 0.4f}, {0.4f, 0.3f, 0.2f}, 3);
 
-    test_top_p({0.1, 0.2, 0.3, 0.4}, {0.4}, 0);
-    test_top_p({0.1, 0.2, 0.3, 0.4}, {0.4, 0.3}, 0.7);
-    test_top_p({0.1, 0.2, 0.3, 0.4}, {0.4, 0.3, 0.2, 0.1}, 1);
+    test_top_p({0.1f, 0.2f, 0.3f, 0.4f}, {0.4f}, 0);
+    test_top_p({0.1f, 0.2f, 0.3f, 0.4f}, {0.4f, 0.3f}, 0.7f);
+    test_top_p({0.1f, 0.2f, 0.3f, 0.4f}, {0.4f, 0.3f, 0.2f, 0.1f}, 1);
 
-    test_tfs({0.1, 0.15, 0.2, 0.25, 0.3}, {0.3}, 0.25);
-    test_tfs({0.1, 0.15, 0.2, 0.25, 0.3}, {0.3, 0.25}, 0.75);
-    test_tfs({0.1, 0.15, 0.2, 0.25, 0.3}, {0.3, 0.25}, 0.99);
+    test_tfs({0.1f, 0.15f, 0.2f, 0.25f, 0.3f}, {0.3f}, 0.25f);
+    test_tfs({0.1f, 0.15f, 0.2f, 0.25f, 0.3f}, {0.3f, 0.25f}, 0.75f);
+    test_tfs({0.1f, 0.15f, 0.2f, 0.25f, 0.3f}, {0.3f, 0.25f}, 0.99f);
 
-    test_typical({0.97, 0.01, 0.01, 0.01}, {0.97}, 0.5);
-    test_typical({0.4, 0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, 0.5);
+    test_typical({0.97f, 0.01f, 0.01f, 0.01f}, {0.97f}, 0.5f);
+    test_typical({0.4f, 0.2f, 0.2f, 0.2f}, {0.2f, 0.2f, 0.2f}, 0.5f);
 
-    test_repetition_penalty({0.2, 0.2, 0.2, 0.2, 0.2}, {0}, {0.25, 0.25, 0.25, 0.25, 0}, 50.0);
-    test_repetition_penalty({0.2, 0.2, 0.2, 0.2, 0.2}, {0, 1, 2}, {0.5, 0.5, 0, 0, 0}, 50.0);
-    test_repetition_penalty({0.2, 0.2, 0.2, 0.2, 0.2}, {0, 1, 2, 0, 0}, {0.5, 0.5, 0, 0, 0}, 50.0);
+    test_repetition_penalty({0.2f, 0.2f, 0.2f, 0.2f, 0.2f}, {0}, {0.25f, 0.25f, 0.25f, 0.25f, 0}, 50.0f);
+    test_repetition_penalty({0.2f, 0.2f, 0.2f, 0.2f, 0.2f}, {0, 1, 2}, {0.5f, 0.5f, 0, 0, 0}, 50.0f);
+    test_repetition_penalty({0.2f, 0.2f, 0.2f, 0.2f, 0.2f}, {0, 1, 2, 0, 0}, {0.5f, 0.5f, 0, 0, 0}, 50.0f);
 
-    test_frequency_presence_penalty({0.2, 0.2, 0.2, 0.2, 0.2}, {0},             {0.249997, 0.249997, 0.249997, 0.249997, 0.000011}, 5.0, 5.0);
-    test_frequency_presence_penalty({0.2, 0.2, 0.2, 0.2, 0.2}, {0, 1, 2},       {0.499966, 0.499966, 0.000023, 0.000023, 0.000023}, 5.0, 5.0);
-    test_frequency_presence_penalty({0.2, 0.2, 0.2, 0.2, 0.2}, {0, 1, 2, 0, 0}, {0.499977, 0.499977, 0.000023, 0.000023, 0.000000}, 5.0, 5.0);
+    test_frequency_presence_penalty({0.2f, 0.2f, 0.2f, 0.2f, 0.2f}, {0},             {0.249997f, 0.249997f, 0.249997f, 0.249997f, 0.000011f}, 5.0f, 5.0f);
+    test_frequency_presence_penalty({0.2f, 0.2f, 0.2f, 0.2f, 0.2f}, {0, 1, 2},       {0.499966f, 0.499966f, 0.000023f, 0.000023f, 0.000023f}, 5.0f, 5.0f);
+    test_frequency_presence_penalty({0.2f, 0.2f, 0.2f, 0.2f, 0.2f}, {0, 1, 2, 0, 0}, {0.499977f, 0.499977f, 0.000023f, 0.000023f, 0.000000f}, 5.0f, 5.0f);
 
     printf("OK\n");
 }

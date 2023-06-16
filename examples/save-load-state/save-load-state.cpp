@@ -8,7 +8,6 @@
 
 int main(int argc, char ** argv) {
     gpt_params params;
-    params.model = "models/llama-7B/ggml-model.bin";
     params.seed = 42;
     params.n_threads = 4;
     params.repeat_last_n = 64;
@@ -27,7 +26,6 @@ int main(int argc, char ** argv) {
     auto lparams = llama_context_default_params();
 
     lparams.n_ctx     = params.n_ctx;
-    lparams.n_parts   = params.n_parts;
     lparams.seed      = params.seed;
     lparams.f16_kv    = params.memory_f16;
     lparams.use_mmap  = params.use_mmap;
@@ -39,7 +37,7 @@ int main(int argc, char ** argv) {
     // init
     auto ctx = llama_init_from_file(params.model.c_str(), lparams);
     auto tokens = std::vector<llama_token>(params.n_ctx);
-    auto n_prompt_tokens = llama_tokenize(ctx, params.prompt.c_str(), tokens.data(), tokens.size(), true);
+    auto n_prompt_tokens = llama_tokenize(ctx, params.prompt.c_str(), tokens.data(), int(tokens.size()), true);
 
     if (n_prompt_tokens < 1) {
         fprintf(stderr, "%s : failed to tokenize prompt\n", __func__);

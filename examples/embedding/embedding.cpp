@@ -4,9 +4,12 @@
 
 #include <ctime>
 
+#if defined(_MSC_VER)
+#pragma warning(disable: 4244 4267) // possible loss of data
+#endif
+
 int main(int argc, char ** argv) {
     gpt_params params;
-    params.model = "models/llama-7B/ggml-model.bin";
 
     if (gpt_params_parse(argc, argv, params) == false) {
         return 1;
@@ -32,6 +35,8 @@ int main(int argc, char ** argv) {
         params.prompt = gpt_random_prompt(rng);
     }
 
+    llama_init_backend();
+
     llama_context * ctx;
 
     // load the model
@@ -55,9 +60,6 @@ int main(int argc, char ** argv) {
 
     // tokenize the prompt
     auto embd_inp = ::llama_tokenize(ctx, params.prompt, true);
-
-    // determine newline token
-    auto llama_token_newline = ::llama_tokenize(ctx, "\n", false);
 
     if (params.verbose_prompt) {
         fprintf(stderr, "\n");
