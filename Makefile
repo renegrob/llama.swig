@@ -260,7 +260,7 @@ llama.o: llama.cpp ggml.h ggml-cuda.h llama.h llama-util.h
 common.o: examples/common.cpp examples/common.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-libllama.so: llama.o ggml.o $(OBJS)
+libllama.so: llama.o ggml.o $(OBJS) common.o
 	$(CXX) $(CXXFLAGS) -shared -fPIC -o $@ $^ $(LDFLAGS)
 
 clean:

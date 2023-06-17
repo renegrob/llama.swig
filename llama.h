@@ -234,7 +234,7 @@ extern "C" {
     // Can be mutated in order to change the probabilities of the next token
     // Rows: n_tokens
     // Cols: n_vocab
-    LLAMA_API float * llama_get_logits(struct llama_context * ctx);
+    LLAMA_API float *llama_get_logits(struct llama_context * ctx);
 
     // Get the embeddings for the input
     // shape: [n_embd] (1-dimensional)
