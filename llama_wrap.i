@@ -2,33 +2,35 @@
 %module(directors="1") NLLamaWrap
 #elif defined(SWIGJAVA)
 %module(directors="1") LLamaWrap
+%include "arrays_java.i"
+%module LLamaWrap
 #else
 %module LLamaWrap
 #endif
 
 #if defined(SWIGPYTHON)
 %feature("autodoc");
+%include "carrays.i"
 #endif
 
 %include "stdint.i"
-%include "std_string.i"
-%include "std_vector.i"
-%include "carrays.i"
+%include "enums.swg"
+%include "typemaps.i"
+%include "stl.i"
+%include "various.i"
 
-%array_class(float, floatArray);
 
 %extend std::vector {
   T* data(void) { return (*$self).data() ; }
   void push_back(const T&d) { return (*$self).push_back(d) ; }
   void emplace(size_t pos, T& d) {  (*$self).emplace((*$self).begin()+pos, d) ; }
-  void emplace_back(T&d ) {  (*$self).emplace_back(d); }  
+  void emplace_back(T&d ) {  (*$self).emplace_back(d); }
 }
-
 
 namespace std {
    %template(vectori) vector<int>;
 };
- 
+
 
 %pragma(java) jniclasscode=%{
   /// Load the JNI library
@@ -40,7 +42,7 @@ namespace std {
 
 %{
 #include "llama.h"
-#include "examples/common.h"  
+#include "examples/common.h"
 %}
 
 %include "llama.h"

@@ -265,7 +265,7 @@ libllama.so: llama.o ggml.o $(OBJS) common.o
 
 clean:
 	rm -vf *.o *.so main quantize quantize-stats perplexity embedding benchmark-matmult save-load-state server vdot train-text-from-scratch build-info.h
-	rm -rf *.jar llama_wrap_java.h llama_wrap_java.cpp libllama_wrap.so bin uk 
+	rm -rf *.jar llama_wrap_java.h llama_wrap_java.cpp libllama_wrap.so bin uk
 
 #
 # Examples
@@ -332,8 +332,8 @@ tests:
 JAVAWRAPDIR = uk/co/bnikolic
 JAVAC = javac
 
-JDK_INCLUDE ?= -I/usr/lib/jvm/java-17-openjdk-amd64/include
-JDK_SYSTEM_INCLUDE ?= -I/usr/lib/jvm/java-17-openjdk-amd64/include/linux
+JDK_INCLUDE ?= -I/usr/lib/jvm/zulu17/include/
+JDK_SYSTEM_INCLUDE ?= -I/usr/lib/jvm/zulu17/include/linux
 
 
 LLamaWrap.jar: llama_wrap_java.cpp libllama_wrap.so
@@ -342,8 +342,13 @@ LLamaWrap.jar: llama_wrap_java.cpp libllama_wrap.so
 	jar cf $@ -C bin uk
 
 llama_wrap_java.cpp: llama_wrap.i
-	mkdir -p $(JAVAWRAPDIR) 
+	mkdir -p $(JAVAWRAPDIR)
 	swig -java -c++ -outdir $(JAVAWRAPDIR)  \
+            -package uk.co.bnikolic -o $@  $<
+
+llama_wrap_java.cpp-noproxy: llama_wrap.i
+	mkdir -p $(JAVAWRAPDIR)
+	swig -java -noproxy -c++ -outdir $(JAVAWRAPDIR)  \
             -package uk.co.bnikolic -o $@  $<
 
 llama_wrap_java.o: llama_wrap_java.cpp
