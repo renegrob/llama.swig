@@ -341,7 +341,7 @@ libllama.so: llama.o ggml.o $(OBJS)
 
 clean:
 	rm -vf *.o *.so *.dll main quantize quantize-stats perplexity embedding benchmark-matmult save-load-state server simple vdot train-text-from-scratch convert-llama2c-to-ggml embd-input-test llama-bench build-info.h $(TEST_TARGETS)
-	rm -rf *.jar llama_wrap_java.h llama_wrap_java.cpp libllama_wrap.so bin uk
+	rm -rf *.jar llama_wrap_java.h llama_wrap_java.cpp libllama_wrap.so bin generated
 
 #
 # Examples
@@ -440,26 +440,29 @@ tests/test-tokenizer-0: tests/test-tokenizer-0.cpp build-info.h ggml.o llama.o c
 
 # Wraps
 
-JAVAWRAPDIR = uk/co/bnikolic
+JAVAWRAPDIR = generated/io/github/renegrob/llamacpp
 JAVAC = javac
 
-JDK_INCLUDE ?= -I/usr/lib/jvm/java-17-openjdk-amd64/include
-JDK_SYSTEM_INCLUDE ?= -I/usr/lib/jvm/java-17-openjdk-amd64/include/linux
+JDK_INCLUDE ?= -I/usr/lib/jvm/zulu17/include/
+JDK_SYSTEM_INCLUDE ?= -I/usr/lib/jvm/zulu17/include/linux
 
 
 LLamaWrap.jar: llama_wrap_java.cpp libllama_wrap.so
 	mkdir -p bin
 	find $(JAVAWRAPDIR)  -name '*.java' | xargs $(JAVAC) -g -d bin
-	jar cf $@ -C bin uk
+	jar cf $@ -C bin io
 
 llama_wrap_java.cpp: llama_wrap.i
 	mkdir -p $(JAVAWRAPDIR)
 	swig -java -c++ -outdir $(JAVAWRAPDIR)  \
-            -package uk.co.bnikolic -o $@  $<
+            -package io.github.renegrob.llamacpp -o $@  $<
 
 llama_wrap_java.o: llama_wrap_java.cpp
 	$(CXX) $(CXXFLAGS) $(JDK_INCLUDE) $(JDK_SYSTEM_INCLUDE) -c  $< -o $@
 
 libllama_wrap.so: llama_wrap_java.o libllama.so
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared  $< -L. -lllama  -o $@
+
+mvn_local_install: LLamaWrap.jar
+	mvn install:install-file -Dfile=LLamaWrap.jar -DgroupId=io.github.renegrob.llama -DartifactId=llamacpp-wrapper -Dversion=0.0.1-SNAPSHOT -Dpackaging=jar
 
