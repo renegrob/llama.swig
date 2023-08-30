@@ -446,6 +446,7 @@ JAVAC = javac
 JDK_INCLUDE ?= -I/usr/lib/jvm/zulu17/include/
 JDK_SYSTEM_INCLUDE ?= -I/usr/lib/jvm/zulu17/include/linux
 
+CXXFLAGS_R =  $(filter-out -Wcast-qual -Wstrict-aliasing -Wall,$(CXXFLAGS))
 
 LLamaWrap.jar: llama_wrap_java.cpp libllama_wrap.so
 	mkdir -p bin
@@ -458,7 +459,7 @@ llama_wrap_java.cpp: llama_wrap.i
             -package io.github.renegrob.llamacpp -o $@  $<
 
 llama_wrap_java.o: llama_wrap_java.cpp
-	$(CXX) $(CXXFLAGS) $(JDK_INCLUDE) $(JDK_SYSTEM_INCLUDE) -c  $< -o $@
+	$(CXX) $(CXXFLAGS_R) $(JDK_INCLUDE) $(JDK_SYSTEM_INCLUDE) -c  $< -o $@
 
 libllama_wrap.so: llama_wrap_java.o libllama.so
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared  $< -L. -lllama  -o $@
