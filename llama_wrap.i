@@ -24,12 +24,12 @@
 %include "swig/java/std_vector.i"
 %include "carrays.i"
 
-// %extend std::vector {
-// //  T* data(void) { return (*$self).data() ; }
-//   void push_back(const T&d) { return (*$self).push_back(d) ; }
-// //   void emplace(size_t pos, T& d) {  (*$self).emplace((*$self).begin()+pos, d) ; }
-// //   void emplace_back(T&d ) {  (*$self).emplace_back(d); }
-// }
+%extend std::vector {
+  T* data(void) { return (*$self).data() ; }
+  void push_back(const T&d) { return (*$self).push_back(d) ; }
+  void emplace(size_t pos, T& d) {  (*$self).emplace((*$self).begin()+pos, d) ; }
+  void emplace_back(T&d ) {  (*$self).emplace_back(d); }
+}
 
 %pragma(java) jniclasscode=%{
   /// Load the JNI library
@@ -72,6 +72,8 @@
 // %ignore llama_sample_frequency_and_presence_penalties;
 
 %ignore console_state;
+
+%ignore console_state;
 %ignore console_init;
 %ignore console_cleanup;
 %ignore console_set_color;
@@ -92,9 +94,9 @@
 
 
 %apply const char **OUTPUT { const char ** strings };
-//%apply int[] { int * };
 
-%typemap(javainterfaces) SWIGTYPE "java.io.Closeable"
+
+%typemap(javainterfaces) SWIGTYPE "java.lang.AutoCloseable"
 %typemap(javafinalize) SWIGTYPE %{
   @Override
   public void close() {
@@ -114,6 +116,7 @@
 
 namespace std {
   %template(CStringVector) std::vector<std::string>;
+  //%template(CIntVector) std::vector<int>;
   %template(CMapIntToFloat) std::unordered_map<llama_token, float>;
 }
 
@@ -121,6 +124,8 @@ struct p_llama_context{};
 
 %array_functions(float, floatArray);
 %array_functions(char *, stringArray)
+%array_functions(int, intArray)
+%array_functions(llama_token_data *, tokenDataArray);
 
 %include "llama.h"
 %include "examples/common.h"
@@ -130,6 +135,50 @@ struct gpt_params new_gpt_params() {
   gpt_params params;
   return params;
 }
+
+
+// TODO: https://stackoverflow.com/questions/30672468/return-an-array-of-java-objects-using-swig
+
+struct llama_token_data_array new_llama_token_data_array(size_t size, bool sorted) {
+  llama_token_data_array data_array;
+  data_array.data = new llama_token_data[size]();
+  data_array.size = size;
+  data_array.sorted = sorted;
+  return data_array;
+}
+
+struct llama_token_data_array new_llama_token_data_array(llama_token_data ** data, size_t size, bool sorted) {
+  llama_token_data_array data_array;
+  data_array.data = *data;
+  data_array.size = size;
+  data_array.sorted = sorted;
+  return data_array;
+}
+
+void tokenDataArray_set_token_data(llama_token_data_array * token_data_array, int index, llama_token id, float logit, float p) {
+    llama_token_data * token_data = token_data_array->data;
+    token_data[index].id = id;
+    token_data[index].logit = logit;
+    token_data[index].p = p;
+}
+
+struct llama_token_data tokenDataArray_get_token_data(llama_token_data_array * token_data_array, int index) {
+    llama_token_data * token_data = token_data_array->data;
+    return token_data[index];
+}
+
+/* TODO: FIXME
+std::vector<llama_token> llama_tokenize(struct llama_context * ctx, const std::string & text, bool add_bos) {
+    // initialize to prompt numer of chars, since n_tokens <= n_prompt_chars
+    std::vector<llama_token> res(text.size() + (int) add_bos);
+    const int n = llama_tokenize(ctx, text.c_str(), res.data(), res.size(), add_bos);
+    assert(n >= 0);
+    res.resize(n);
+
+    return res;
+}
+*/
+
 %}
 
 #if defined(SWIGPYTHON)

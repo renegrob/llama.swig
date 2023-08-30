@@ -25,7 +25,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CONST_REFERENCE)
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
-%typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess, java.io.Closeable"
+%typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess, java.lang.AutoCloseable"
 %proxycode %{
   public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
     this();
