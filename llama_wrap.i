@@ -120,10 +120,17 @@ namespace std {
 struct p_llama_context{};
 
 %array_functions(float, floatArray);
-%array_functions(char *, SWIGArrayUtility)
+%array_functions(char *, stringArray)
 
 %include "llama.h"
 %include "examples/common.h"
+
+%inline %{
+struct gpt_params new_gpt_params() {
+  gpt_params params;
+  return params;
+}
+%}
 
 #if defined(SWIGPYTHON)
 %feature("autodoc");
