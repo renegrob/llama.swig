@@ -9,6 +9,17 @@
 
 Inference of [LLaMA](https://arxiv.org/abs/2302.13971) model in pure C/C++
 
+# This is a Fork of https://github.com/bnikolic/llama.swig which is based on https://github.com/ggerganov/llama.cpp
+
+Based on upstream commit
+```
+server : better default prompt (#2646)
+
+1f0bccb2 Georgi Gerganov <ggerganov@gmail.com> on 18.08.23 at 23:45
+```
+
+---------
+
 ### 🚧 Incoming breaking change + refactoring:
 
 See PR https://github.com/ggerganov/llama.cpp/pull/2398 for more info.
