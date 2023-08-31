@@ -48,9 +48,12 @@
 %rename("LLamaTokenData") llama_token_data;
 %rename("LLamaTokenDataArray") llama_token_data_array;
 %rename("LLamaModelQuantizeParams") llama_model_quantize_params;
+%rename("LLamaGrammarElement") llama_grammar_element;
+%rename("LLamaGretType") llama_gretype;
+%rename("LLamaLogLevel") llama_log_level;
+%rename("LLamaTimings") llama_timings;
 
-%rename("ConsoleColor") console_color_t;
-%rename("GptParams") gpt_params;
+
 
 // %rename("%(camelcase)s", %$isclass) "";
 // %rename("%(camelcase)s", %$isenum) "";
@@ -71,16 +74,6 @@
 // %ignore llama_sample_repetition_penalty;
 // %ignore llama_sample_frequency_and_presence_penalties;
 
-%ignore console_state;
-
-%ignore console_state;
-%ignore console_init;
-%ignore console_cleanup;
-%ignore console_set_color;
-%ignore console_readline;
-%ignore gpt_random_prompt;
-%ignore gpt_params_parse;
-%ignore gpt_print_usage;
 
 // We cannot rename SWIGtypes so we substitute it
 %typemap(jstype) llama_context * "LLamaContext"
@@ -115,7 +108,6 @@
 
 %{
   #include "llama.h"
-  #include "examples/common.h"
   struct p_llama_context{};
 %}
 
@@ -135,7 +127,6 @@ struct p_llama_context{};
 %array_functions(llama_token_data *, token_data_array);
 
 %include "llama.h"
-%include "examples/common.h"
 
 // %typemap(javacode) llama_token_data %{
 //     public LLamaTokenData() {
@@ -144,10 +135,6 @@ struct p_llama_context{};
 // %}
 
 %inline %{
-struct gpt_params new_gpt_params() {
-  gpt_params params;
-  return params;
-}
 
 struct llama_token_data new_llama_token_data() {
   llama_token_data data;
