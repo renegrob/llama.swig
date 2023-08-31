@@ -12,7 +12,9 @@
 .clang-tidy
 .vs/
 .vscode/
+.idea/
 
+bin/
 build/
 build-em/
 build-debug/
