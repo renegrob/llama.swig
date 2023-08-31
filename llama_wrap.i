@@ -62,8 +62,8 @@
 // %ignore llama_save_session_file;
 // %ignore llama_eval;
 // %ignore llama_tokenize;
-%ignore llama_set_state_data;
-%ignore llama_copy_state_data;
+//&ignore llama_set_state_data;
+//%ignore llama_copy_state_data;
 // %ignore llama_get_logits;
 // %ignore llama_get_embeddings;
 // %ignore llama_sample_token_mirostat;
@@ -82,8 +82,7 @@
 %ignore gpt_params_parse;
 %ignore gpt_print_usage;
 
-//%typemap(jni) llama_context * "jobject"
-//%typemap(jtype) llama_context * "p_llama_context"
+// We cannot rename SWIGtypes so we substitute it
 %typemap(jstype) llama_context * "LLamaContext"
 %typemap(javain) llama_context * "LLamaContext.getCPtr($javainput)"
 %typemap(javaout) llama_context * {
@@ -104,6 +103,12 @@
   }
 %}
 
+// %typemap(out, fragment="convertString") std::string
+// %{
+//   const std::string &s = $1;
+//   $result = jenv->NewString(s, strlen($s));
+// %}
+
 
 %nodefaultctor;
 
@@ -118,23 +123,40 @@ namespace std {
   %template(CStringVector) std::vector<std::string>;
   //%template(CIntVector) std::vector<int>;
   %template(CMapIntToFloat) std::unordered_map<llama_token, float>;
+  %template(CTokenDataVector) vector<llama_token_data>;
 }
 
 struct p_llama_context{};
 
-%array_functions(float, floatArray);
-%array_functions(char *, stringArray)
-%array_functions(int, intArray)
-%array_functions(llama_token_data *, tokenDataArray);
+%array_functions(float, float_array);
+%array_functions(char *, string_array)
+%array_functions(int, int_array)
+%array_functions(uint8_t, uint8_array)
+%array_functions(llama_token_data *, token_data_array);
 
 %include "llama.h"
 %include "examples/common.h"
+
+// %typemap(javacode) llama_token_data %{
+//     public LLamaTokenData() {
+//         this(LLamaWrap.new_llama_token_data(), true);
+//     }
+// %}
 
 %inline %{
 struct gpt_params new_gpt_params() {
   gpt_params params;
   return params;
 }
+
+struct llama_token_data new_llama_token_data() {
+  llama_token_data data;
+  return data;
+}
+
+// static uint8_t * new_uint8_array(size_t size) {
+//   return new uint8_t[size]();
+// }
 
 
 // TODO: https://stackoverflow.com/questions/30672468/return-an-array-of-java-objects-using-swig
@@ -147,15 +169,15 @@ struct llama_token_data_array new_llama_token_data_array(size_t size, bool sorte
   return data_array;
 }
 
-struct llama_token_data_array new_llama_token_data_array(llama_token_data ** data, size_t size, bool sorted) {
+struct llama_token_data_array new_llama_token_data_array(llama_token_data * data, size_t size, bool sorted) {
   llama_token_data_array data_array;
-  data_array.data = *data;
+  data_array.data = data;
   data_array.size = size;
   data_array.sorted = sorted;
   return data_array;
 }
 
-void tokenDataArray_set_token_data(llama_token_data_array * token_data_array, int index, llama_token id, float logit, float p) {
+static void tokenDataArray_set_token_data(llama_token_data_array * token_data_array, int index, llama_token id, float logit, float p) {
     llama_token_data * token_data = token_data_array->data;
     token_data[index].id = id;
     token_data[index].logit = logit;
